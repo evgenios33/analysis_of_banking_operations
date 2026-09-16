@@ -11,10 +11,10 @@ from requests import RequestException
 
 load_dotenv()
 
-API_KEY_APILAYER = os.getenv("API_KEY_APILAYER")
+API_KEY_FREECURRENCY = os.getenv("API_KEY_FREECURRENCY")
 API_KEY_FINNHUB = os.getenv("API_KEY_FINNHUB")
 
-APILAYER_URL = "https://api.apilayer.com/exchangerates_data/latest"
+FREECURRENCY_URL = "https://api.freecurrencyapi.com/v1/latest"
 FINNHUB_URL = "https://finnhub.io/api/v1/quote"
 
 
@@ -39,7 +39,7 @@ def get_a_date_range(user_date: str, date_fmt: str = "%Y-%m-%d %H:%M:%S") -> tup
     Возвращает диапазон с начала месяца до указанной даты (включительно) в виде кортежа.
     """
     if not user_date or not (user_date := user_date.strip()):
-        raise ValueError("user_date не может быть пустой строкой.")
+        raise ValueError('"user_date" не может быть пустой строкой.')
 
     try:
         end_date = datetime.strptime(user_date, date_fmt)
@@ -166,9 +166,9 @@ def get_currency_rates(file_path: str) -> list[dict[str, float]]:
         if not isinstance(currency, str):
             continue
 
-        url = APILAYER_URL
-        params = {"symbols": "RUB", "base": currency}
-        headers = {"apikey": f"{API_KEY_APILAYER}"}
+        url = FREECURRENCY_URL
+        params = {"base_currency": currency, "currencies": "RUB"}
+        headers = {"apikey": f"{API_KEY_FREECURRENCY}"}
 
         try:
             response = requests.get(url, params=params, headers=headers, timeout=10)
@@ -176,7 +176,7 @@ def get_currency_rates(file_path: str) -> list[dict[str, float]]:
             result = response.json()
             currency_rate_dicts = {
                 "currency": currency,
-                "rate": round(result["rates"]["RUB"], 2),
+                "rate": round(result["data"]["RUB"], 2),
             }
             currency_rate_list.append(currency_rate_dicts)
 
