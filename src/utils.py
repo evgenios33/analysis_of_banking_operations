@@ -1,6 +1,7 @@
 import json
-import os.path
+import os
 from datetime import datetime
+from pathlib import Path
 from typing import Any, Hashable
 
 import pandas as pd
@@ -50,18 +51,18 @@ def get_a_date_range(user_date: str, date_fmt: str = "%Y-%m-%d %H:%M:%S") -> tup
     return start_date, end_date
 
 
-def filter_df_by_period(file_path: str, start_date: datetime, end_date: datetime) -> DataFrame:
+def filter_df_by_period(file_path: Path, start_date: datetime, end_date: datetime) -> DataFrame:
     """
     Принимает на вход путь к Excel-файлу и диапазон дат из функции get_a_date_range(),
     и возвращает отфильтрованный датафрейм с операциями в заданном диапазоне.
     """
-    full_path = os.path.abspath(file_path)
+    path = Path(file_path)
 
-    if not os.path.isfile(full_path):
-        raise FileNotFoundError(f"Файл не найден: {full_path}")
+    if not path.is_file():
+        raise FileNotFoundError(f"Файл не найден: {path.resolve()}")
 
     try:
-        df = pd.read_excel(full_path)
+        df = pd.read_excel(path, engine="openpyxl")
     except Exception as e:
         raise IOError(f"Не удалось прочитать Excel-файл: {e}") from e
 
@@ -70,7 +71,9 @@ def filter_df_by_period(file_path: str, start_date: datetime, end_date: datetime
 
     df["Дата операции"] = pd.to_datetime(df["Дата операции"], dayfirst=True, errors="coerce")
 
-    filtered_df = df[(df["Дата операции"] >= start_date) & (df["Дата операции"] <= end_date)].copy()
+    mask = (df["Дата операции"] >= start_date) & (df["Дата операции"] <= end_date)
+    filtered_df = df[mask].copy()
+
     return filtered_df
 
 
@@ -140,17 +143,17 @@ def get_top_transactions(filtered_df: DataFrame, operation_count: int = 5) -> li
     return top_transactions_result
 
 
-def load_settings(file_path: str) -> Any:
+def load_settings(file_path: Path) -> Any:
     """
     Принимает на вход путь к файлу с пользовательскими настройками,
     считывает содержимое файла user_settings.json и возвращает данные в формате Python.
     """
-    full_path = os.path.abspath(file_path)
-    with open(full_path, "r", encoding="utf-8") as file:
+    path = Path(file_path)
+    with open(path, "r", encoding="utf-8") as file:
         return json.load(file)
 
 
-def get_currency_rates(file_path: str) -> list[dict[str, float]]:
+def get_currency_rates(file_path: Path) -> list[dict[str, float]]:
     """
     Принимает путь к файлу с пользовательскими настройками и
     возвращает актуальные курсы валют относительно RUB для списка валют из файла настроек.
@@ -186,7 +189,7 @@ def get_currency_rates(file_path: str) -> list[dict[str, float]]:
     return currency_rate_list
 
 
-def get_stock_prices(file_path: str) -> list[dict[str, float]]:
+def get_stock_prices(file_path: Path) -> list[dict[str, float]]:
     """
     Принимает путь к файлу с пользовательскими настройками и
     возвращает текущие цены акций для списка тикеров из файла настроек.

@@ -1,4 +1,5 @@
 from datetime import date, datetime
+from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 import pandas as pd
@@ -75,7 +76,7 @@ def test_filter_df_by_period_success(mock_read_excel: MagicMock, _mock_isfile: M
     start = datetime(2026, 8, 1)
     end = datetime(2026, 8, 15)
 
-    result = filter_df_by_period("./dummy.xlsx", start, end)
+    result = filter_df_by_period(Path("dummy.xlsx"), start, end)
 
     assert mock_read_excel.called
     assert len(result) == 2
@@ -88,14 +89,14 @@ def test_filter_df_by_period_success(mock_read_excel: MagicMock, _mock_isfile: M
 @patch("os.path.isfile", return_value=False)
 def test_filter_df_by_period_file_not_found(_mock_isfile: MagicMock) -> None:
     with pytest.raises(FileNotFoundError, match="Файл не найден"):
-        filter_df_by_period("missing.xlsx", datetime(2026, 8, 1), datetime(2026, 8, 31))
+        filter_df_by_period(Path("missing.xlsx"), datetime(2026, 8, 1), datetime(2026, 8, 31))
 
 
 @patch("os.path.isfile", return_value=True)
 @patch("src.utils.pd.read_excel", return_value=pd.DataFrame({"OtherCol": [1, 2]}))
 def test_filter_df_by_period_missing_date_column(_mock_read_excel: MagicMock, _mock_isfile: MagicMock) -> None:
     with pytest.raises(ValueError, match='отсутствует колонка "Дата операции"'):
-        filter_df_by_period("dummy.xlsx", datetime(2026, 8, 1), datetime(2026, 8, 31))
+        filter_df_by_period(Path("dummy.xlsx"), datetime(2026, 8, 1), datetime(2026, 8, 31))
 
 
 def test_get_info_on_cards_normal() -> None:
@@ -149,7 +150,7 @@ def test_get_top_transactions_missing_columns() -> None:
 @patch("builtins.open", new_callable=MagicMock)
 @patch("json.load", return_value={"user_currencies": ["USD", "EUR"], "user_stocks": ["AAPL"]})
 def test_load_settings_success(_mock_json_load: MagicMock, mock_open: MagicMock) -> None:
-    data = load_settings("dummy.json")
+    data = load_settings(Path("dummy.json"))
     assert data["user_currencies"] == ["USD", "EUR"]
     mock_open.assert_called_once()
 
@@ -161,7 +162,7 @@ def test_get_currency_rates_success(mock_get: MagicMock, mock_load_settings: Mag
     mock_get.return_value.json.return_value = {"data": {"RUB": 92.567}}
     mock_get.return_value.raise_for_status.return_value = None
 
-    result = get_currency_rates("dummy.json")
+    result = get_currency_rates(Path("dummy.json"))
     assert result == [{"currency": "USD", "rate": 92.57}]
 
 
@@ -172,7 +173,7 @@ def test_get_currency_rates_api_error(mock_get: MagicMock, mock_load_settings: M
     mock_get.side_effect = Exception("Ошибка при выполнении запроса к API.")
 
     with pytest.raises(Exception, match="Ошибка при выполнении запроса к API."):
-        get_currency_rates("dummy.json")
+        get_currency_rates(Path("dummy.json"))
 
 
 @patch("src.utils.load_settings")
@@ -182,7 +183,7 @@ def test_get_stock_prices_success(mock_get: MagicMock, mock_load_settings: Magic
     mock_get.return_value.json.return_value = {"c": 185.75}
     mock_get.return_value.raise_for_status.return_value = None
 
-    result = get_stock_prices("dummy.json")
+    result = get_stock_prices(Path("dummy.json"))
     assert result == [{"stock": "AAPL", "price": 185.75}]
 
 
@@ -193,4 +194,4 @@ def test_get_stock_prices_api_error(mock_get: MagicMock, mock_load_settings: Mag
     mock_get.side_effect = Exception("Ошибка при выполнении запроса к API.")
 
     with pytest.raises(Exception, match="Ошибка при выполнении запроса к API."):
-        get_stock_prices("dummy.json")
+        get_stock_prices(Path("dummy.json"))

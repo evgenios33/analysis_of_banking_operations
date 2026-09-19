@@ -1,6 +1,7 @@
 import json
 import logging
 
+from .file_paths import PATH_OPERATIONS_FILE, PATH_USER_SETTINGS_FILE
 from .utils import (
     filter_df_by_period,
     get_a_date_range,
@@ -17,9 +18,6 @@ file_handler = logging.FileHandler("logs/views.log", mode="a", encoding="utf-8")
 file_formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s: %(message)s")
 file_handler.setFormatter(file_formatter)
 views_logger.addHandler(file_handler)
-
-PATH_OPERATIONS_FILE = "./data/operations.xlsx"
-PATH_USER_SETTINGS_FILE = "./user_settings.json"
 
 
 def main_info(user_date: str) -> str:
