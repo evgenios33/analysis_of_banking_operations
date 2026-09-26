@@ -12,12 +12,7 @@ from .utils import (
     get_top_transactions,
 )
 
-views_logger = logging.getLogger(__name__)
-views_logger.setLevel(logging.DEBUG)
-file_handler = logging.FileHandler("logs/views.log", mode="a", encoding="utf-8")
-file_formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s: %(message)s")
-file_handler.setFormatter(file_formatter)
-views_logger.addHandler(file_handler)
+logger = logging.getLogger(__name__)
 
 
 def main_info(user_date: str) -> str:
@@ -38,13 +33,13 @@ def main_info(user_date: str) -> str:
 
         # Определение диапазона дат
         start_date, end_date = get_a_date_range(user_date)
-        views_logger.debug(f"Период отчёта: {start_date} — {end_date}")
+        logger.debug(f"Период отчёта: {start_date} — {end_date}")
 
         # Загрузка и фильтрация операций
         filtered_df = filter_df_by_period(PATH_OPERATIONS_FILE, start_date, end_date)
 
         if filtered_df.empty:
-            views_logger.info(f"В указанном периоде нет операций для файла {PATH_OPERATIONS_FILE}")
+            logger.info(f"В указанном периоде нет операций для файла {PATH_OPERATIONS_FILE}")
 
         # Инфо по каждой карте
         cards = get_info_on_cards(filtered_df)
@@ -70,11 +65,11 @@ def main_info(user_date: str) -> str:
         return json_data
 
     except FileNotFoundError as e:
-        views_logger.error(f"Файл не найден: {e}")
+        logger.error(f"Файл не найден: {e}")
         raise
     except ValueError as e:
-        views_logger.error(f"Ошибка в параметрах даты: {e}")
+        logger.error(f"Ошибка в параметрах даты: {e}")
         raise
     except Exception as e:
-        views_logger.exception(f"Непредвиденная ошибка при формировании отчёта: {e}")
+        logger.exception(f"Непредвиденная ошибка при формировании отчёта: {e}")
         raise
