@@ -1,3 +1,7 @@
+import tempfile
+from pathlib import Path
+from typing import Generator
+
 import pandas as pd
 import pytest
 
@@ -27,3 +31,29 @@ def sample_df() -> pd.DataFrame:
             },
         ]
     )
+
+
+@pytest.fixture
+def tmp_report_path() -> Generator[Path, str]:
+    """Временный путь для отчёта, чтобы не засорять файловую систему."""
+    with tempfile.TemporaryDirectory() as tmpdir:
+        yield Path(tmpdir) / "report"
+
+
+@pytest.fixture
+def sample_transactions() -> pd.DataFrame:
+    """Пример DataFrame с транзакциями (разные категории и даты)."""
+    data = {
+        "Категория": ["Продукты", "Продукты", "Транспорт", "Продукты", "Развлечения", "Транспорт", "Продукты"],
+        "Дата платежа": [
+            "01.08.2026",
+            "15.08.2026",
+            "30.08.2026",
+            "05.09.2026",
+            "10.09.2026",
+            "20.09.2026",
+            "25.09.2026",
+        ],
+        "Сумма": [120.5, 89.0, 45.2, 210.0, 300.0, 67.8, 150.3],
+    }
+    return pd.DataFrame(data)
