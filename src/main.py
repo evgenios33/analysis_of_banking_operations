@@ -3,7 +3,9 @@ import os
 from logging.handlers import RotatingFileHandler
 from pathlib import Path
 
-from .services import main_services
+from .file_paths import PATH_OPERATIONS_FILE
+from .reports import spending_by_category
+from .services import main_services, read_data_from_xlsx
 from .views import main_info
 
 log_path = os.getenv("LOG_FILE", "logs/app.log")
@@ -22,6 +24,9 @@ file_handler.setFormatter(file_formatter)
 
 root_logger.addHandler(file_handler)
 
+transactions = read_data_from_xlsx(PATH_OPERATIONS_FILE)
+
 if __name__ == "__main__":
     print(main_info("2021-10-04 22:00:00"))
     print(main_services("каршер"))
+    print(spending_by_category(transactions, "супермаркеты", "31.12.2021"))
